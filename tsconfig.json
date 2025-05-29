@@ -6,6 +6,10 @@
     "outDir": "dist",
     "rootDir": "server",
     "module": "commonjs",
-    "target": "es2017"
+    "target": "es2017",
+    "baseUrl": "./server",
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
   }
 }
