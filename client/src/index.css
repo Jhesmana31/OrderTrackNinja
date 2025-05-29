@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 251 4% 7%; /* Dark blue-violet #0a0515 */
+  --foreground: 0 0% 98%;
+  --muted: 252 17% 18%; /* #1a0b2e */
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 251 4% 7%;
+  --popover-foreground: 0 0% 98%;
+  --card: 252 30% 21%; /* #2d1b4e */
+  --card-foreground: 0 0% 98%;
+  --border: 320 100% 25%; /* Neon pink border */
+  --input: 320 100% 25%;
+  --primary: 320 100% 50%; /* Neon pink #ff0080 */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 180 100% 50%; /* Neon teal #00ffff */
+  --secondary-foreground: 251 4% 7%;
+  --accent: 180 100% 50%;
+  --accent-foreground: 251 4% 7%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 320 100% 50%;
+  --radius: 0.5rem;
+  --chart-1: 320 100% 50%;
+  --chart-2: 180 100% 50%;
+  --chart-3: 60 100% 50%;
+  --chart-4: 120 100% 50%;
+  --chart-5: 240 100% 50%;
+}
+
+.dark {
+  --background: 251 4% 7%;
+  --foreground: 0 0% 98%;
+  --muted: 252 17% 18%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 251 4% 7%;
+  --popover-foreground: 0 0% 98%;
+  --card: 252 30% 21%;
+  --card-foreground: 0 0% 98%;
+  --border: 320 100% 25%;
+  --input: 320 100% 25%;
+  --primary: 320 100% 50%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 180 100% 50%;
+  --secondary-foreground: 251 4% 7%;
+  --accent: 180 100% 50%;
+  --accent-foreground: 251 4% 7%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 320 100% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background: linear-gradient(135deg, hsl(251 4% 7%) 0%, hsl(252 17% 18%) 50%, hsl(251 4% 7%) 100%);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    background: rgba(45, 27, 78, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 0, 128, 0.2);
+  }
+
+  .neon-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  .neon-border-pink {
+    border: 1px solid hsl(var(--primary));
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+  }
+
+  .neon-border-teal {
+    border: 1px solid hsl(var(--secondary));
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  }
+
+  .order-tile {
+    background: linear-gradient(135deg, rgba(45, 27, 78, 0.9) 0%, rgba(26, 11, 46, 0.9) 100%);
+    border: 1px solid rgba(255, 0, 128, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .order-tile:hover {
+    border-color: rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  .upload-zone {
+    border: 2px dashed rgba(0, 255, 255, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .upload-zone:hover {
+    border-color: rgba(0, 255, 255, 0.8);
+    background: rgba(0, 255, 255, 0.05);
+  }
+
+  .timeline-step {
+    position: relative;
+  }
+
+  .timeline-step::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 30px;
+    bottom: -20px;
+    width: 2px;
+    background: rgba(255, 0, 128, 0.3);
+  }
+
+  .timeline-step:last-child::before {
+    display: none;
+  }
+
+  .gradient-text {
+    background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--secondary)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+    box-shadow: 0 0 5px rgba(255, 0, 128, 0.5);
+  }
+  50% { 
+    opacity: 0.5; 
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.8);
+  }
+}
