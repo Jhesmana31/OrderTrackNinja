@@ -5,7 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { insertOrderSchema, insertMessageSchema, insertTimelineEventSchema } from "@shared/schema";
+import { insertOrderSchema, insertMessageSchema, insertTimelineEventSchema } from "../shared/schema";
 import { z } from "zod";
 import { initTelegramBot } from "./telegram-bot";
 
