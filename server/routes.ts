@@ -207,38 +207,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to send message' });
     }
   });
+  
+// Upload QR code for payment with timeout and error handling
+app.post('/api/orders/:id/qr', upload.single('qr'), async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const file = req.file;
 
-  // Upload QR code for payment
-  app.post('/api/orders/:id/qr', upload.single('qr'), async (req, res) => {
-    try {
-      const orderId = parseInt(req.params.id);
-      const file = req.file;
-      
-      if (!file) {
-        return res.status(400).json({ error: 'QR code file is required' });
-      }
-      
-      const order = await storage.getOrder(orderId);
-      if (!order) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
-      
-      // Send QR code via Telegram bot
-      const filePath = path.join(uploadDir, file.filename);
-      await telegramBot.telegram.sendPhoto(order.telegramChatId, { source: filePath }, {
-        caption: `Payment QR Code for Order #${order.id}\nTotal: ₱${(order.total / 100).toFixed(2)}\nPlease scan and upload your payment proof after paying.`
+    if (!file) {
+      return res.status(400).json({ error: 'QR code file is required' });
+    }
+
+    const order = await storage.getOrder(orderId);
+    if (!order) {
+      // Delete the uploaded file if order not found to avoid orphan files
+      fs.unlink(file.path, (err) => {
+        if (err) console.error('Error deleting orphan file:', err);
       });
-      
-      // Update order to mark QR as sent
-      await storage.updateOrder(orderId, { qrCodeSent: true });
-      
-      broadcast({ type: 'qrCodeSent', orderId });
-      res.json({ success: true, message: 'QR code sent to customer' });
-    } catch (error) {
-      console.error('Error sending QR code:', error);
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const filePath = file.path;
+
+    // Helper function to add timeout for Telegram API call
+    const sendPhotoWithTimeout = async () => {
+      return Promise.race([
+        telegramBot.telegram.sendPhoto(order.telegramChatId, { source: filePath }, {
+          caption: `Payment QR Code for Order #${order.id}\nTotal: ₱${(order.total / 100).toFixed(2)}\nPlease scan and upload your payment proof after paying.`,
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Telegram sendPhoto timeout')), 10000)
+        ),
+      ]);
+    };
+
+    await sendPhotoWithTimeout();
+
+    // Update order to mark QR as sent
+    await storage.updateOrder(orderId, { qrCodeSent: true });
+
+    broadcast({ type: 'qrCodeSent', orderId });
+
+    res.json({ success: true, message: 'QR code sent to customer' });
+  } catch (error) {
+    console.error('Error sending QR code:', error);
+
+    // If file exists on error, delete it to avoid buildup
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file after failure:', err);
+      });
+    }
+
+    if (error.message.includes('timeout')) {
+      res.status(504).json({ error: 'Timeout sending QR code to Telegram' });
+    } else {
       res.status(500).json({ error: 'Failed to send QR code' });
     }
-  });
+  }
+});
 
   // Get timeline for an order
   app.get('/api/orders/:id/timeline', async (req, res) => {
