@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.json",
   "include": ["server/**/*"],
   "exclude": ["node_modules", "client", "dist"],
   "compilerOptions": {
