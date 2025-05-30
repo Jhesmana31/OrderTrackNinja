@@ -30,7 +30,7 @@ export interface IStorage {
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
 }
 
-export class MemStorage implements IStorage {
+export class SupabaseStorage implements IStorage {
   private users: Map<number, User>;
   private orders: Map<number, Order>;
   private messages: Map<number, Message>;
