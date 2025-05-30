@@ -6,6 +6,7 @@ import {
   type Message, type InsertMessage,
   type TimelineEvent, type InsertTimelineEvent
 } from "@shared/schema";
+import { supabase } from './supabase';
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
