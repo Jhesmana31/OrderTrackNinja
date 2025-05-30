@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { jsonb } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -15,7 +16,8 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
-  items: text("items").array().notNull(), // JSON array of order items
+   // 👈 Add this at the top
+items: jsonb("items").notNull(), // ✅ This properly stores structured data like an array of objects// JSON array of order items
   total: integer("total").notNull(), // Amount in cents
   deliverySlot: text("delivery_slot").notNull(),
   status: text("status").notNull().default("pending"), // pending, confirmed, preparing, ready, delivering, delivered, cancelled
