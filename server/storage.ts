@@ -1,4 +1,5 @@
-import { 
+import { createClient } from "@supabase/supabase-js";
+import {
   users, orders, messages, timelineEvents,
   type User, type InsertUser,
   type Order, type InsertOrder,
@@ -7,12 +8,10 @@ import {
 } from "@shared/schema";
 
 export interface IStorage {
-  // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
-  // Order operations
   getOrder(id: number): Promise<Order | undefined>;
   getOrderByChatId(chatId: string): Promise<Order | undefined>;
   getAllOrders(): Promise<Order[]>;
@@ -21,142 +20,99 @@ export interface IStorage {
   updateOrder(id: number, updates: Partial<Order>): Promise<Order | undefined>;
   deleteOrder(id: number): Promise<boolean>;
 
-  // Message operations
   getMessagesByOrderId(orderId: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
 
-  // Timeline operations
   getTimelineByOrderId(orderId: number): Promise<TimelineEvent[]>;
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
 }
 
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+);
+
 export class SupabaseStorage implements IStorage {
-  private users: Map<number, User>;
-  private orders: Map<number, Order>;
-  private messages: Map<number, Message>;
-  private timelineEvents: Map<number, TimelineEvent>;
-  private currentUserId: number;
-  private currentOrderId: number;
-  private currentMessageId: number;
-  private currentTimelineId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.orders = new Map();
-    this.messages = new Map();
-    this.timelineEvents = new Map();
-    this.currentUserId = 1;
-    this.currentOrderId = 1;
-    this.currentMessageId = 1;
-    this.currentTimelineId = 1;
-  }
-
-  // User operations
+  // Users
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const { data } = await supabase.from("users").select("*").eq("id", id).single();
+    return data ?? undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const { data } = await supabase.from("users").select("*").eq("username", username).single();
+    return data ?? undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createUser(user: InsertUser): Promise<User> {
+    const { data, error } = await supabase.from("users").insert(user).select().single();
+    if (error) throw error;
+    return data;
   }
 
-  // Order operations
+  // Orders
   async getOrder(id: number): Promise<Order | undefined> {
-    return this.orders.get(id);
+    const { data } = await supabase.from("orders").select("*").eq("id", id).single();
+    return data ?? undefined;
   }
 
   async getOrderByChatId(chatId: string): Promise<Order | undefined> {
-    return Array.from(this.orders.values()).find(
-      (order) => order.telegramChatId === chatId
-    );
+    const { data } = await supabase.from("orders").select("*").eq("telegramChatId", chatId).order("createdAt", { ascending: false }).limit(1).single();
+    return data ?? undefined;
   }
 
   async getAllOrders(): Promise<Order[]> {
-    return Array.from(this.orders.values()).sort((a, b) => 
-      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-    );
+    const { data } = await supabase.from("orders").select("*").order("createdAt", { ascending: false });
+    return data ?? [];
   }
 
   async getOrdersByStatus(status: string): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(
-      (order) => order.status === status
-    );
+    const { data } = await supabase.from("orders").select("*").eq("status", status).order("createdAt", { ascending: false });
+    return data ?? [];
   }
 
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const id = this.currentOrderId++;
-    const now = new Date();
-    const order: Order = { 
-      ...insertOrder, 
-      id, 
-      createdAt: now, 
-      updatedAt: now 
-    };
-    this.orders.set(id, order);
-    return order;
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const { data, error } = await supabase.from("orders").insert(order).select().single();
+    if (error) throw error;
+    return data;
   }
 
   async updateOrder(id: number, updates: Partial<Order>): Promise<Order | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-    
-    const updatedOrder = { 
-      ...order, 
-      ...updates, 
-      updatedAt: new Date() 
-    };
-    this.orders.set(id, updatedOrder);
-    return updatedOrder;
+    const { data, error } = await supabase.from("orders").update(updates).eq("id", id).select().single();
+    if (error) throw error;
+    return data ?? undefined;
   }
 
   async deleteOrder(id: number): Promise<boolean> {
-    return this.orders.delete(id);
+    const { error } = await supabase.from("orders").delete().eq("id", id);
+    if (error) return false;
+    return true;
   }
 
-  // Message operations
+  // Messages
   async getMessagesByOrderId(orderId: number): Promise<Message[]> {
-    return Array.from(this.messages.values())
-      .filter((message) => message.orderId === orderId)
-      .sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+    const { data } = await supabase.from("messages").select("*").eq("orderId", orderId).order("createdAt", { ascending: true });
+    return data ?? [];
   }
 
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.currentMessageId++;
-    const message: Message = { 
-      ...insertMessage, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.messages.set(id, message);
-    return message;
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const { data, error } = await supabase.from("messages").insert(message).select().single();
+    if (error) throw error;
+    return data;
   }
 
-  // Timeline operations
+  // Timeline Events
   async getTimelineByOrderId(orderId: number): Promise<TimelineEvent[]> {
-    return Array.from(this.timelineEvents.values())
-      .filter((event) => event.orderId === orderId)
-      .sort((a, b) => new Date(a.timestamp!).getTime() - new Date(b.timestamp!).getTime());
+    const { data } = await supabase.from("timelineEvents").select("*").eq("orderId", orderId).order("timestamp", { ascending: true });
+    return data ?? [];
   }
 
-  async createTimelineEvent(insertEvent: InsertTimelineEvent): Promise<TimelineEvent> {
-    const id = this.currentTimelineId++;
-    const event: TimelineEvent = { 
-      ...insertEvent, 
-      id, 
-      timestamp: new Date() 
-    };
-    this.timelineEvents.set(id, event);
-    return event;
+  async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
+    const { data, error } = await supabase.from("timelineEvents").insert(event).select().single();
+    if (error) throw error;
+    return data;
   }
 }
 
-export const storage = new MemStorage();
+// 👇 this is your main storage instance used in bot/backend
+export const storage = new SupabaseStorage();
