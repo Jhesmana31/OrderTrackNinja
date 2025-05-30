@@ -14,12 +14,11 @@ export function calculateNextAvailableSlot(): string[] {
     minute = 0;
   }
 
-  // If we're less than 20 minutes from the next slot, skip to the following one
+  // If less than 20 mins to slot, push to next one
   const nextSlotTime = new Date(manilaTime);
   nextSlotTime.setHours(hour);
   nextSlotTime.setMinutes(minute);
   const diffMinutes = (nextSlotTime.getTime() - manilaTime.getTime()) / 60000;
-
   if (diffMinutes < 20) {
     minute += 30;
     if (minute === 60) {
@@ -29,41 +28,23 @@ export function calculateNextAvailableSlot(): string[] {
   }
 
   const slots: string[] = [];
-  const cutoffTime = new Date(manilaTime.getTime() + 24 * 60 * 60000); // 24 hours later
+  const slotTime = new Date(manilaTime);
+  slotTime.setHours(hour);
+  slotTime.setMinutes(minute);
+  slotTime.setSeconds(0);
+  slotTime.setMilliseconds(0);
 
-  // Generate slots until cutoff
-  while (true) {
-    const slotTime = new Date();
-    slotTime.setUTCHours(0, 0, 0, 0); // Reset to midnight UTC
-    slotTime.setTime(
-      new Date(Date.UTC(
-        manilaTime.getUTCFullYear(),
-        manilaTime.getUTCMonth(),
-        manilaTime.getUTCDate(),
-        hour,
-        minute
-      )).getTime()
-    );
+  const cutoffTime = new Date(manilaTime.getTime() + 24 * 60 * 60000); // +24 hours
 
-    if (slotTime > cutoffTime) break;
-
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    const period = hour < 12 || hour === 24 ? 'AM' : 'PM';
-    const displayMinute = minute === 0 ? '00' : '30';
+  while (slotTime <= cutoffTime) {
+    const displayHour = slotTime.getHours() % 12 === 0 ? 12 : slotTime.getHours() % 12;
+    const displayMinute = slotTime.getMinutes() === 0 ? '00' : '30';
+    const period = slotTime.getHours() < 12 ? 'AM' : 'PM';
 
     slots.push(`${displayHour}:${displayMinute} ${period}`);
 
-    // Move to next 30-min slot
-    minute += 30;
-    if (minute === 60) {
-      hour += 1;
-      minute = 0;
-    }
-
-    if (hour >= 24) {
-      hour = 0;
-      // Add 1 day, but since we check against cutoffTime, no need to set date manually
-    }
+    // Move to next 30-minute slot
+    slotTime.setMinutes(slotTime.getMinutes() + 30);
   }
 
   return slots;
