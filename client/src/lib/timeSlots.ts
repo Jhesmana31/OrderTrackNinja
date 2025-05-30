@@ -36,10 +36,10 @@ export function calculateNextAvailableSlot(): string[] {
 
   const cutoffTime = new Date(manilaTime.getTime() + 24 * 60 * 60000); // +24 hours
 
-  while (slotTime <= cutoffTime) {
-    const displayHour = slotTime.getHours() % 12 === 0 ? 12 : slotTime.getHours() % 12;
-    const displayMinute = slotTime.getMinutes() === 0 ? '00' : '30';
-    const period = slotTime.getHours() < 12 ? 'AM' : 'PM';
+  while (slotTime <= cutoffTime && slots.length < 3) {
+  const displayHour = slotTime.getHours() % 12 === 0 ? 12 : slotTime.getHours() % 12;
+  const displayMinute = slotTime.getMinutes() === 0 ? '00' : '30';
+  const period = slotTime.getHours() < 12 ? 'AM' : 'PM';
 
     slots.push(`${displayHour}:${displayMinute} ${period}`);
 
