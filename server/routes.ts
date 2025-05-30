@@ -129,9 +129,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid order data', details: error.errors });
-      }
-      cconsole.error('Error creating order:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    }
+      }if (error instanceof Error) {
+  console.error('Error creating order:', error.message, error.stack);
+} else {
+  console.error('Error creating order (non-error):', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+}
   });
 
   // Update order
@@ -302,10 +304,16 @@ app.post('/api/orders/:id/qr', upload.single('qr'), async (req, res) => {
       
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching stats:', error);
-      res.status(500).json({ error: 'Failed to fetch stats' });
-    }
-  });
+  if (error instanceof Error) {
+    console.error('Error creating order:', error.message, error.stack);
+  } else {
+    console.error('Error creating order (non-error):', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+  }
+  if (error instanceof z.ZodError) {
+    return res.status(400).json({ error: 'Invalid order data', details: error.errors });
+  }
+  res.status(500).json({ error: 'Failed to create order' });
+}
 
   return httpServer;
 }
