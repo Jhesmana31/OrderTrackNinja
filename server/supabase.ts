@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  'https://qnzbjkvgmubxgjndtrhm.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuemJqa3ZnbXVieGdqbmR0cmhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjEzNTMsImV4cCI6MjA2NDEzNzM1M30.-3SyNKrbtwOQZQRhEfZSE5k6jDbs77R6m1cnpFuzTIg'
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-export { supabase };
+if (!supabaseUrl) throw new Error('SUPABASE_URL environment variable is required.');
+if (!supabaseKey) throw new Error('SUPABASE_KEY environment variable is required.');
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
