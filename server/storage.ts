@@ -27,11 +27,6 @@ export interface IStorage {
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
 }
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
-
 export class SupabaseStorage implements IStorage {
   // Users
   async getUser(id: number): Promise<User | undefined> {
